@@ -9,3 +9,6 @@ storage/patrones/
 storage/analizados/
 *.db
 *.sqlite3
+app/static/storage/uploads/
+app/static/storage/patrones/
+app/static/storage/analizados/
