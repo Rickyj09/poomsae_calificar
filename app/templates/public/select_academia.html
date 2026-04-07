@@ -1,0 +1,29 @@
+{% extends "base_public.html" %}
+{% block title %}Seleccionar academia{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h4 class="mb-3">Selecciona tu academia</h4>
+
+    <form method="POST" action="{{ url_for('public.select_academia') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">  
+      <div class="mb-3">
+        <select class="form-select" name="academia_id" required>
+          <option value="">-- Selecciona --</option>
+          {% for a in academias %}
+          <option value="{{ a.id }}">{{ a.nombre }} ({{ a.slug }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button class="btn btn-primary">Continuar</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('public.seed') }}">Seed (DEV)</a>
+    </form>
+
+    <hr class="my-3">
+    <small class="text-muted">
+      Tip DEV: ejecuta Seed para crear una academia demo y usuario admin.
+    </small>
+  </div>
+</div>
+{% endblock %}

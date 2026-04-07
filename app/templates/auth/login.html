@@ -1,0 +1,33 @@
+{% extends "base_public.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="mb-3">Login</h4>
+
+        <form method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">  
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input class="form-control" type="email" name="email" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input class="form-control" type="password" name="password" required>
+          </div>
+
+          <button class="btn btn-primary w-100">Ingresar</button>
+        </form>
+
+        <div class="mt-3">
+          <small class="text-muted">Si no has seleccionado academia, vuelve al inicio.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base_public.html" %}
+{% block title %}Nuevo video{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h4 class="mb-3">Subir video</h4>
+
+    <form method="POST" action="{{ url_for('videos.subir') }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <!-- Metadata para guardar -->
+      <input type="hidden" name="original_filename" id="original_filename">
+      <input type="hidden" name="duration_seconds" id="duration_seconds">
+
+      <div class="mb-3">
+        <label class="form-label">Alumno *</label>
+        <select class="form-select" name="alumno_id" required>
+          <option value="">-- Selecciona --</option>
+          {% for a in alumnos %}
+            <option value="{{ a.id }}">{{ a.apellidos }} {{ a.nombres }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Poomsae *</label>
+        <select class="form-select" name="poomsae_id" required>
+          <option value="">-- Selecciona --</option>
+          {% for p in poomsaes %}
+            <option value="{{ p.id }}">{{ p.nombre }}</option>
+          {% endfor %}
+        </select>
+        <div class="form-text">Esta poomsae se usará para comparar y marcar el video patrón.</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Video *</label>
+        <input
+          class="form-control"
+          type="file"
+          name="video"
+          id="video_input"
+          accept="video/*"
+          capture="environment"
+          required
+        >
+        <div class="form-text">En celular, abrirá cámara/galería. Formatos: mp4/webm/mov/m4v.</div>
+
+        <!-- Preview meta -->
+        <div class="mt-2 small text-muted" id="video_meta"></div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Subir</button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('videos.index') }}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const input = document.getElementById("video_input");
+  const metaDiv = document.getElementById("video_meta");
+  const originalFilename = document.getElementById("original_filename");
+  const durationSeconds = document.getElementById("duration_seconds");
+
+  function formatMB(bytes) {
+    return (bytes / 1024 / 1024).toFixed(2) + " MB";
+  }
+
+  function formatDuration(sec) {
+    if (!sec || isNaN(sec)) return "-";
+    sec = Math.floor(sec);
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }
+
+  input.addEventListener("change", () => {
+    metaDiv.textContent = "";
+    durationSeconds.value = "";
+    originalFilename.value = "";
+
+    const file = input.files && input.files[0];
+    if (!file) return;
+
+    originalFilename.value = file.name;
+
+    const video = document.createElement("video");
+    video.preload = "metadata";
+
+    video.onloadedmetadata = () => {
+      const dur = video.duration;
+      durationSeconds.value = Math.round(dur);
+      URL.revokeObjectURL(video.src);
+      metaDiv.textContent = `Archivo: ${file.name} | Tamaño: ${formatMB(file.size)} | Duración: ${formatDuration(dur)}`;
+    };
+
+    video.onerror = () => {
+      metaDiv.textContent = `Archivo: ${file.name} | Tamaño: ${formatMB(file.size)} | Duración: (no disponible)`;
+    };
+
+    video.src = URL.createObjectURL(file);
+  });
+</script>
+{% endblock %}

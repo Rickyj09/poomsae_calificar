@@ -1,0 +1,265 @@
+{% extends "base_public.html" %}
+{% block title %}Análisis IA{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h3 class="mb-0">Análisis IA</h3>
+    <div class="text-muted small">Sprint 1 (Estabilidad + Ritmo) + Sprint 2 (Patrón + Segmentos)</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('videos.index') }}">Volver</a>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <video class="w-100" controls preload="metadata">
+      <source src="{{ url_for('static', filename=video.rel_path) }}">
+      Tu navegador no soporta video.
+    </video>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    {% if not analisis %}
+      <div class="text-muted">Aún no hay análisis para este video.</div>
+    {% else %}
+      <div class="mb-2">
+        <span class="badge bg-secondary">Estado: {{ analisis.estado }}</span>
+        {% if analisis.estado == 'error' %}
+          <span class="text-danger ms-2">{{ analisis.error_msg }}</span>
+        {% endif %}
+      </div>
+
+      {% if analisis.estado == 'listo' %}
+        <!-- Scores principales -->
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="p-3 border rounded">
+              <div class="text-muted small">Score Total</div>
+              <div class="fs-3 fw-bold">{{ analisis.score_total }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 border rounded">
+              <div class="text-muted small">Estabilidad</div>
+              <div class="fs-4 fw-semibold">{{ analisis.score_estabilidad }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 border rounded">
+              <div class="text-muted small">Ritmo</div>
+              <div class="fs-4 fw-semibold">{{ analisis.score_ritmo }}</div>
+            </div>
+          </div>
+        </div>
+
+        <hr>
+
+        {# ============================
+           MÉTRICAS (Sprint1 + Sprint2)
+           ============================ #}
+
+        {% set m = analisis.metrics_json %}
+        {% if m and (m is string) %}
+          {% set m_dict = None %}
+        {% else %}
+          {% set m_dict = m %}
+        {% endif %}
+
+        {% if m_dict %}
+          {% set s1 = m_dict.get('sprint1', {}) %}
+          {% set s2 = m_dict.get('sprint2', {}) %}
+          {% set wts = m_dict.get('weights', {}) %}
+
+          {% set est = s1.get('estabilidad', {}) %}
+          {% set rit = s1.get('ritmo', {}) %}
+
+          <h5 class="mb-2">Métricas técnicas</h5>
+
+          <!-- Sprint 1 cards -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <div class="p-3 border rounded h-100">
+                <div class="text-muted small">Sprint 1 · Estabilidad</div>
+                <div class="mt-2">
+                  <div>
+                    <span class="fw-semibold">stability_std_norm:</span>
+                    {{ est.get('stability_std_norm', '-') }}
+                  </div>
+                  <div class="small text-muted mt-1">
+                    good ≤ {{ est.get('threshold_good', '-') }}
+                    | bad ≥ {{ est.get('threshold_bad', '-') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="p-3 border rounded h-100">
+                <div class="text-muted small">Sprint 1 · Ritmo</div>
+                <div class="mt-2">
+                  <div>
+                    <span class="fw-semibold">cv:</span>
+                    {{ rit.get('cv', '-') }}
+                  </div>
+                  <div>
+                    <span class="fw-semibold">pause_ratio:</span>
+                    {{ rit.get('pause_ratio', '-') }}
+                  </div>
+                  <div class="small text-muted mt-1">
+                    pause_thr: {{ rit.get('pause_thr', '-') }}
+                    {% if rit.get('smooth_k') %}
+                      | smooth_k: {{ rit.get('smooth_k') }}
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="p-3 border rounded h-100">
+                <div class="text-muted small">Sprint 1 · Velocidad (debug)</div>
+                <div class="mt-2">
+                  <div><span class="fw-semibold">v_mean:</span> {{ rit.get('v_mean', '-') }}</div>
+                  <div><span class="fw-semibold">v_std:</span> {{ rit.get('v_std', '-') }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sprint 2 cards -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <div class="p-3 border rounded h-100">
+                <div class="text-muted small">Sprint 2 · Similitud vs Patrón</div>
+                <div class="mt-2">
+                  <div>
+                    <span class="fw-semibold">similarity_score:</span>
+                    {{ s2.get('similarity_score', '-') }}
+                  </div>
+                  <div class="small text-muted mt-1">
+                    dtw_dist: {{ s2.get('dtw_dist', '-') }}
+                    {% if s2.get('path_len') is not none %}
+                      | path_len: {{ s2.get('path_len') }}
+                    {% endif %}
+                  </div>
+                  <div class="small text-muted">
+                    dtw_good: {{ s2.get('dtw_good', '-') }} | dtw_bad: {{ s2.get('dtw_bad', '-') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="p-3 border rounded h-100">
+                <div class="text-muted small">Sprint 2 · Segmentos</div>
+                <div class="mt-2">
+                  <div>
+                    <span class="fw-semibold">segment_score:</span>
+                    {{ s2.get('segment_score', '-') }}
+                  </div>
+                  <div class="small text-muted mt-1">
+                    segment_avg_score: {{ s2.get('segment_avg_score', '-') }}
+                  </div>
+                  <div class="small text-muted">
+                    segmentos: {{ (s2.get('segments')|length) if s2.get('segments') else 0 }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="p-3 border rounded h-100">
+                <div class="text-muted small">Pesos del total (debug)</div>
+                <div class="mt-2 small">
+                  <div>sprint1: {{ wts.get('sprint1', '-') }}</div>
+                  <div>similarity: {{ wts.get('similarity', '-') }}</div>
+                  <div>segments: {{ wts.get('segments', '-') }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {% if s2.get('segments') %}
+            <h6 class="mb-2">Detalle por segmentos</h6>
+            <div class="table-responsive mb-3">
+              <table class="table table-sm table-striped align-middle">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>score</th>
+                    <th>dtw_dist</th>
+                    <th>frames</th>
+                    <th class="text-muted">info</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for seg in s2.get('segments') %}
+                    <tr>
+                      <td>{{ loop.index }}</td>
+                      <td>{{ seg.get('score', '-') }}</td>
+                      <td>{{ seg.get('dtw_dist', '-') }}</td>
+                <td>
+                {% set ar = seg.get('a_range') %}
+                {% set br = seg.get('b_range') %}
+                {{ (ar[0] ~ '–' ~ ar[1]) if ar else '---' }}
+                /
+                {{ (br[0] ~ '–' ~ br[1]) if br else '---' }}
+              </td>
+              <td class="small text-muted">
+                len_a={{ seg.get('len_a','-') }}, len_b={{ seg.get('len_b','-') }}
+                {% if seg.get('info') %} | {{ seg.get('info') }}{% endif %}
+              </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-muted small mb-3">
+              No hay segmentos (puede faltar patrón, poomsae_id, o el aligner no generó segmentos).
+            </div>
+          {% endif %}
+
+          <div class="text-muted small mb-3">
+            Tip: Sprint 2 compara contra el video patrón de la misma poomsae. Si no hay patrón activo, solo Sprint 1 afecta.
+          </div>
+
+        {% else %}
+          <div class="alert alert-warning">
+            No hay métricas disponibles (metrics_json vacío o no es dict). Mira el debug abajo.
+          </div>
+        {% endif %}
+
+        <!-- DEBUG siempre -->
+        <details class="mt-2">
+          <summary class="small text-muted">Debug: metrics_json</summary>
+          <pre class="mb-0">
+tipo={{ 'string' if (analisis.metrics_json is string) else 'dict/none' }}
+{{ analisis.metrics_json | tojson(indent=2) if analisis.metrics_json else 'NULL' }}
+          </pre>
+        </details>
+
+        <hr>
+
+        <h5>Alertas</h5>
+        {% if analisis.warnings_json %}
+          <ul class="mb-0">
+            {% for w in analisis.warnings_json %}
+              <li><b>{{ w.tipo }}</b> ({{ w.sev }}): {{ w.detalle }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="text-muted">Sin alertas.</div>
+        {% endif %}
+
+      {% else %}
+        <div class="text-muted">
+          El análisis está en proceso. Refresca en unos segundos.
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

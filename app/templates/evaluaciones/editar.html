@@ -1,0 +1,79 @@
+{% extends "base_public.html" %}
+{% block title %}Calificar{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h3 class="mb-0">Calificación</h3>
+    <div class="text-muted small">
+      Evaluación #{{ ev.id }} | Estado: <b>{{ ev.estado }}</b>
+      {% if alumno %} | Alumno: <b>{{ alumno.apellidos }} {{ alumno.nombres }}</b>{% endif %}
+    </div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('videos.index') }}">Volver</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="mb-3">Video</h5>
+        <video class="w-100" controls preload="metadata">
+          <source src="{{ url_for('static', filename=video.rel_path) }}">
+          Tu navegador no soporta video.
+        </video>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="mb-3">Puntajes</h5>
+
+        <form method="POST" action="{{ url_for('evaluaciones.guardar', evaluacion_id=ev.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          {% for it in items %}
+            <div class="mb-3">
+              <label class="form-label">
+                {{ it.criterio_nombre }}
+                <span class="text-muted small">(máx {{ it.max_puntaje }})</span>
+              </label>
+              <input class="form-control"
+                     type="number"
+                     step="0.01"
+                     min="0"
+                     max="{{ it.max_puntaje }}"
+                     name="puntaje_{{ it.id }}"
+                     value="{{ it.puntaje }}">
+              <input class="form-control mt-2"
+                     type="text"
+                     name="notas_{{ it.id }}"
+                     placeholder="Notas (opcional)"
+                     value="{{ it.notas or '' }}">
+            </div>
+          {% endfor %}
+
+          <div class="mb-3">
+            <label class="form-label">Observaciones</label>
+            <textarea class="form-control" name="observaciones" rows="3">{{ ev.observaciones or '' }}</textarea>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <span class="text-muted">Total actual:</span>
+              <span class="fs-5 fw-semibold">{{ ev.total }}</span>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary" name="accion" value="borrador" type="submit">Guardar</button>
+              <button class="btn btn-success" name="accion" value="final" type="submit">Finalizar</button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

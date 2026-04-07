@@ -1,0 +1,47 @@
+{% extends "base_public.html" %}
+{% block title %}{{ 'Editar alumno' if alumno else 'Nuevo alumno' }}{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h4 class="mb-3">{{ 'Editar alumno' if alumno else 'Nuevo alumno' }}</h4>
+
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Nombres *</label>
+          <input class="form-control" name="nombres" required
+                 value="{{ alumno.nombres if alumno else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Apellidos *</label>
+          <input class="form-control" name="apellidos" required
+                 value="{{ alumno.apellidos if alumno else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Documento</label>
+          <input class="form-control" name="documento"
+                 value="{{ alumno.documento if alumno else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Cinturón</label>
+          <input class="form-control" name="cinturon"
+                 placeholder="Ej: Amarillo, Verde, Rojo..."
+                 value="{{ alumno.cinturon if alumno else '' }}">
+        </div>
+      </div>
+
+      <div class="mt-4 d-flex gap-2">
+        <button class="btn btn-primary" type="submit">
+          {{ 'Guardar cambios' if alumno else 'Crear alumno' }}
+        </button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('alumnos.index') }}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
